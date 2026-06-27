@@ -9,6 +9,13 @@ Implementacion base profesional para el piloto Phoenix: agenda de visitas, contr
 - Base de datos objetivo: PostgreSQL
 - Infraestructura objetivo: Cloud Run, Artifact Registry, Cloud SQL y Load Balancer
 
+## Accesos
+
+- Local frontend: http://localhost:5173/
+- Local API: http://localhost:3000/api
+- Documentacion API local: http://localhost:3000/api/docs
+- Repositorio web: https://github.com/loreto2888/Agenda-para-Gesti-n-de-Visitas
+
 ## Estructura
 
 ```text
@@ -26,7 +33,7 @@ npm run dev:web
 npm run dev:api
 ```
 
-La web queda disponible en `http://localhost:5173` y la API en `http://localhost:3000`.
+La web queda disponible en `http://localhost:5173/` y la API en `http://localhost:3000/api`.
 
 ## Scripts
 
