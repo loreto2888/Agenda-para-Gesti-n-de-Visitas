@@ -25,13 +25,23 @@ const initialForm = {
 };
 
 export function App() {
+  const [registeredUsers, setRegisteredUsers] = useState<UserAccount[]>(() => {
+    const storedUsers = window.localStorage.getItem('phoenix-users');
+    return storedUsers ? JSON.parse(storedUsers) as UserAccount[] : [];
+  });
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     const storedUser = window.localStorage.getItem('phoenix-user');
     return storedUser ? JSON.parse(storedUser) as UserAccount : null;
   });
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [loginEmail, setLoginEmail] = useState('paciente@correo.cl');
   const [loginPassword, setLoginPassword] = useState('Phoenix2026!');
   const [loginError, setLoginError] = useState('');
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [registerRole, setRegisterRole] = useState<UserAccount['rol']>('PACIENTE');
+  const [registerDoctorId, setRegisterDoctorId] = useState(doctors[0].id);
   const [appointments, setAppointments] = useState<Appointment[]>(() => {
     const storedAppointments = window.localStorage.getItem('phoenix-appointments');
     return storedAppointments ? JSON.parse(storedAppointments) as Appointment[] : initialAppointments;
@@ -68,10 +78,11 @@ export function App() {
 
   const activeAppointments = appointments.filter((appointment) => appointment.estado !== 'Anulada');
   const bookedSlots = new Set(activeAppointments.map((appointment) => `${appointment.medicoId}-${appointment.fecha}-${appointment.hora}`));
+  const authUsers = [...demoUsers, ...registeredUsers];
 
   function handleLogin() {
     const normalizedEmail = loginEmail.trim().toLowerCase();
-    const user = demoUsers.find((item) => item.email === normalizedEmail && item.password === loginPassword);
+    const user = authUsers.find((item) => item.email === normalizedEmail && item.password === loginPassword);
     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
 
     if (!user && (!isValidEmail || loginPassword.length < 6)) {
@@ -96,6 +107,46 @@ export function App() {
     }));
     setLoginError('');
     setMessage(`Sesion iniciada como ${sessionUser.nombre}. Ya puedes tomar, revisar, cambiar o anular horas.`);
+  }
+
+  function registerAccount() {
+    const normalizedEmail = registerEmail.trim().toLowerCase();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+    if (!isValidEmail || registerPassword.length < 6) {
+      setLoginError('Para registrar, ingresa un correo valido y una clave de al menos 6 caracteres.');
+      return;
+    }
+
+    if (authUsers.some((user) => user.email === normalizedEmail)) {
+      setLoginError('Ese correo ya tiene cuenta. Ingresa con tu clave.');
+      setAuthMode('login');
+      setLoginEmail(normalizedEmail);
+      return;
+    }
+
+    const selectedDoctorForRegister = doctors.find((doctor) => doctor.id === registerDoctorId) ?? doctors[0];
+    const user: UserAccount = {
+      id: `usr_${Date.now()}`,
+      nombre: registerRole === 'MEDICO' ? selectedDoctorForRegister.nombre : registerName.trim() || normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      password: registerPassword,
+      rol: registerRole,
+    };
+
+    const nextUsers = [...registeredUsers, user];
+    setRegisteredUsers(nextUsers);
+    window.localStorage.setItem('phoenix-users', JSON.stringify(nextUsers));
+    setCurrentUser(user);
+    window.localStorage.setItem('phoenix-user', JSON.stringify(user));
+    setForm((value) => ({
+      ...value,
+      correo: user.email,
+      paciente: user.rol === 'PACIENTE' ? user.nombre : value.paciente,
+      medicoId: user.rol === 'MEDICO' ? registerDoctorId : value.medicoId,
+    }));
+    setSelectedDoctorId(user.rol === 'MEDICO' ? registerDoctorId : selectedDoctorId);
+    setLoginError('');
+    setMessage(`Cuenta creada para ${user.nombre}. Ya puedes usar tu pagina.`);
   }
 
   function handleLogout() {
@@ -179,7 +230,7 @@ export function App() {
             <span className="eyebrow">Acceso seguro</span>
             <div className="temporary-logo">PX</div>
             <h1>Agenda Visitas Phoenix</h1>
-            <p>Ingresa como paciente, medico o administrador para gestionar horas y revisar la agenda de visitas.</p>
+            <p>{authMode === 'login' ? 'Ingresa con tu correo y clave para gestionar tus horas.' : 'Crea tu cuenta como paciente, medico o administrador.'}</p>
           </div>
 
           <div className="demo-users">
@@ -192,12 +243,24 @@ export function App() {
             ))}
           </div>
 
-          <form className="login-form" onSubmit={(event) => { event.preventDefault(); handleLogin(); }}>
+          <div className="auth-switch" role="tablist" aria-label="Acceso o registro">
+            <button className={authMode === 'login' ? 'active' : ''} type="button" onClick={() => { setAuthMode('login'); setLoginError(''); }}>Ingresar</button>
+            <button className={authMode === 'register' ? 'active' : ''} type="button" onClick={() => { setAuthMode('register'); setLoginError(''); }}>Registrarme</button>
+          </div>
+
+          {authMode === 'login' ? <form className="login-form" onSubmit={(event) => { event.preventDefault(); handleLogin(); }}>
             <label>Correo<input type="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
             <label>Clave<input type="password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} /></label>
             {loginError && <p className="form-error">{loginError}</p>}
             <button type="submit"><KeyRound size={18} />Entrar</button>
-          </form>
+          </form> : <form className="login-form" onSubmit={(event) => { event.preventDefault(); registerAccount(); }}>
+            <label>Tipo de cuenta<select value={registerRole} onChange={(event) => setRegisterRole(event.target.value as UserAccount['rol'])}><option value="PACIENTE">Paciente</option><option value="MEDICO">Medico</option><option value="ADMINISTRADOR">Administrador</option></select></label>
+            {registerRole === 'MEDICO' ? <label>Agenda medica<select value={registerDoctorId} onChange={(event) => setRegisterDoctorId(event.target.value)}>{doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.nombre}</option>)}</select></label> : <label>Nombre<input value={registerName} onChange={(event) => setRegisterName(event.target.value)} placeholder="Nombre completo" /></label>}
+            <label>Correo<input type="email" value={registerEmail} onChange={(event) => setRegisterEmail(event.target.value)} placeholder="tu.correo@dominio.cl" /></label>
+            <label>Clave<input type="password" value={registerPassword} onChange={(event) => setRegisterPassword(event.target.value)} placeholder="Minimo 6 caracteres" /></label>
+            {loginError && <p className="form-error">{loginError}</p>}
+            <button type="submit"><UserRoundCheck size={18} />Crear cuenta y entrar</button>
+          </form>}
         </section>
       </main>
     );

@@ -362,7 +362,7 @@ th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-
 
 .login-form { grid-column: 1 / -1; display: grid; gap: 12px; }
 .login-form label { display: grid; gap: 6px; color: var(--muted); font-weight: 800; }
-.login-form input, .compact-select {
+.login-form input, .login-form select, .compact-select {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px;
@@ -382,6 +382,26 @@ th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-
   cursor: pointer;
 }
 .form-error { margin: 0; color: var(--red); font-weight: 800; }
+.auth-switch {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+.auth-switch button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+  cursor: pointer;
+}
+.auth-switch button.active { background: rgba(31, 182, 200, 0.14); color: var(--teal-strong); }
 
 .ghost-button {
   width: 100%;

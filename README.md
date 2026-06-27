@@ -25,6 +25,8 @@ Todos usan la clave `Phoenix2026!`.
 - Medico: `medico@phoenix.cl`
 - Paciente: `paciente@phoenix.cl`
 
+Tambien se puede crear una cuenta desde la pantalla inicial con correo y clave, eligiendo perfil Paciente, Medico o Administrador. Las cuentas y horas creadas quedan guardadas localmente en el navegador para la demo.
+
 ## Estructura
 
 ```text
