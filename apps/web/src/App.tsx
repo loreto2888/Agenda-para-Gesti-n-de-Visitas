@@ -342,8 +342,8 @@ export function App() {
         <section className="hero-panel">
           <div className="hero-copy">
             <span className="status-dot"><Stethoscope size={16} />Operacion funcional</span>
-            <h2>Login, agenda por medico, ficha de paciente, inscripcion, anulacion y cambio de hora.</h2>
-            <p>Pacientes, medicos y administradores pueden registrarse con sus datos, ingresar con correo y clave, revisar agenda y operar sus horas segun perfil.</p>
+            <h2>Login, agenda disponible, registro de visita, reagendamiento, asistencia y seguimiento.</h2>
+            <p>Usuarios externos, operadores internos y administradores pueden registrarse con sus datos, ingresar con correo y clave, revisar agenda y operar visitas segun perfil.</p>
           </div>
           <div className="hero-metrics" aria-label="Indicadores principales">
             {kpis.map((item) => (
@@ -359,12 +359,12 @@ export function App() {
 
         <section className="panel feature-summary">
           <span className="eyebrow">RF-01 a RF-13</span>
-          <h3>Flujos listos para prueba funcional</h3>
+          <h3>Flujos revisados contra la propuesta Phoenix</h3>
           <div className="feature-grid">
-            <div><strong>Registro y login</strong><span>Cuenta con correo y clave para paciente, medico o administrador.</span></div>
-            <div><strong>Agenda</strong><span>Revision de horas libres, ocupadas y seleccionadas por medico.</span></div>
-            <div><strong>Mi pagina</strong><span>Paciente ve, agenda, cambia y anula sus horas.</span></div>
-            <div><strong>Gestion clinica</strong><span>Medico/admin revisa pacientes, libera horarios y registra asistencia.</span></div>
+            <div><strong>RF-01 a RF-04</strong><span>Login, agenda 5 dias, registro sin RUT y prevencion de doble reserva.</span></div>
+            <div><strong>RF-05 a RF-08</strong><span>Notificacion simulada, vista admin, bloqueo/anulacion y reagendamiento.</span></div>
+            <div><strong>RF-09 a RF-12</strong><span>Confirmaciones, asistencia/no asistencia, resultado y seguimiento interno.</span></div>
+            <div><strong>RF-13</strong><span>Base API para outbound como modulo adicional evaluable.</span></div>
           </div>
         </section>
 

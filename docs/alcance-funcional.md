@@ -1,16 +1,18 @@
 # Alcance funcional Phoenix
 
+> La revision formal contra RF-01 a RF-13 y los 21 criterios de aceptacion esta en `docs/matriz-rf-criterios-aceptacion.md`.
+
 ## Resumen ejecutivo
 
-Phoenix requiere una plataforma web para gestionar el agendamiento de visitas asociadas a gestiones de dacion y venta directa. En la version demo implementada, pacientes, medicos y administradores pueden registrarse con sus datos, iniciar sesion, revisar agenda y operar las horas segun su perfil.
+Phoenix requiere una plataforma web para gestionar el agendamiento de visitas asociadas a gestiones de dacion y venta directa. En la version demo implementada, los usuarios pueden registrarse con sus datos, iniciar sesion, revisar agenda y operar las horas segun su perfil.
 
 La plataforma permite visualizar disponibilidad para los proximos 5 dias habiles, registrar visitas con datos minimos, impedir reservas duplicadas, simular notificaciones al cliente, anular horas, cambiar horarios, registrar asistencia/no asistencia y documentar resultados.
 
 ## Perfiles
 
-- Paciente: registro con nombre, correo y clave; login; agenda disponible; seleccion de slot libre; toma de hora; revision en Mi pagina; cambio o anulacion de hora.
-- Medico: registro con correo, clave y agenda medica asociada; login; revision de agenda; ficha de paciente; anulacion/liberacion de horarios; asistencia/no asistencia.
-- Administrador: registro con correo y clave; vista total de horas; seguimiento consolidado; acciones sobre agenda, anulacion, cambio de horario y asistencia.
+- Ejecutivo externo / usuario externo: registro con nombre, correo y clave; login; agenda disponible; seleccion de slot libre; toma de hora/visita; revision en Mi pagina; cambio o anulacion de hora.
+- Operador interno / medico demo: registro con correo, clave y agenda asociada; login; revision de agenda; ficha de cliente; anulacion/liberacion de horarios; asistencia/no asistencia.
+- Administrador: registro con correo y clave; vista total de horas/visitas; seguimiento consolidado; acciones sobre agenda, anulacion, cambio de horario y asistencia.
 - Equipo interno Phoenix: seguimiento de visitas realizadas, no realizadas, medico, estado, resultado y agenda general.
 
 ## Requerimientos funcionales

@@ -38,7 +38,7 @@ Tambien se puede crear una cuenta desde la pantalla inicial con correo y clave, 
 - Vista administrador con seguimiento consolidado.
 - Confirmacion Si/No antes de acciones criticas.
 
-El detalle RF-01 a RF-13 esta documentado en `docs/alcance-funcional.md`.
+El detalle RF-01 a RF-13 esta documentado en `docs/alcance-funcional.md` y la matriz formal contra los 21 criterios de aceptacion esta en `docs/matriz-rf-criterios-aceptacion.md`.
 
 ## Estructura
 
