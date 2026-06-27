@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EJECUTIVO_EXTERNO
+  ADMINISTRADOR
+  VISOR_INTERNO
+}
+
+enum TipoGestion {
+  DACION
+  VENTA_DIRECTA
+}
+
+enum EstadoVisita {
+  AGENDADA
+  CONFIRMADA
+  REAGENDAR
+  REALIZADA
+  NO_ASISTIO
+  CANCELADA
+}
+
+model Empresa {
+  id        String   @id @default(cuid())
+  nombre    String
+  activa    Boolean  @default(true)
+  usuarios  Usuario[]
+  visitas   Visita[]
+  createdAt DateTime @default(now())
+}
+
+model Usuario {
+  id           String   @id @default(cuid())
+  nombre       String
+  email        String   @unique
+  passwordHash String
+  rol          Role
+  activo       Boolean  @default(true)
+  empresaId    String?
+  empresa      Empresa? @relation(fields: [empresaId], references: [id])
+  visitas      Visita[]
+  createdAt    DateTime @default(now())
+}
+
+model Visita {
+  id              String       @id @default(cuid())
+  op              String
+  clienteNombre   String
+  clienteEmail    String
+  clienteTelefono String
+  tipoGestion     TipoGestion
+  estado          EstadoVisita @default(AGENDADA)
+  inicio          DateTime
+  fin             DateTime
+  resultado       String?
+  tokenCliente    String       @unique @default(cuid())
+  empresaId       String
+  empresa         Empresa      @relation(fields: [empresaId], references: [id])
+  ejecutivoId     String
+  ejecutivo       Usuario      @relation(fields: [ejecutivoId], references: [id])
+  auditoria       Auditoria[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([inicio, fin])
+}
+
+model BloqueoCalendario {
+  id        String   @id @default(cuid())
+  inicio    DateTime
+  fin       DateTime
+  motivo    String
+  createdAt DateTime @default(now())
+
+  @@index([inicio, fin])
+}
+
+model Auditoria {
+  id        String   @id @default(cuid())
+  visitaId  String
+  visita    Visita   @relation(fields: [visitaId], references: [id])
+  accion    String
+  detalle   Json?
+  createdAt DateTime @default(now())
+}

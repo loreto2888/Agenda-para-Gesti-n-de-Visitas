@@ -1,0 +1,22 @@
+{
+  "name": "agenda-visitas-phoenix",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma de agenda para gestion de visitas piloto Phoenix.",
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace apps/web",
+    "dev:web": "npm run dev --workspace apps/web",
+    "dev:api": "npm run start:dev --workspace apps/api",
+    "build": "npm run build --workspaces",
+    "build:web": "npm run build --workspace apps/web",
+    "build:api": "npm run build --workspace apps/api",
+    "typecheck": "npm run typecheck --workspaces"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
