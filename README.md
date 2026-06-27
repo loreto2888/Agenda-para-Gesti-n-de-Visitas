@@ -41,6 +41,8 @@ Tambien se puede crear una cuenta desde la pantalla inicial con correo y clave, 
 - Registro de resultado libre.
 - Simulacion de confirmacion o rechazo del cliente.
 - Gestion outbound basica del administrador.
+- Seguimiento con filtros por texto, fecha, estado, tipo y medico.
+- API con token publico para consultar, confirmar o rechazar visitas.
 
 El detalle RF-01 a RF-13 esta documentado en `docs/alcance-funcional.md` y la matriz formal contra los 21 criterios de aceptacion esta en `docs/matriz-rf-criterios-aceptacion.md`.
 
@@ -78,7 +80,7 @@ Copiar `.env.example` a `.env` y completar credenciales reales para base de dato
 
 - Experiencia web profesional para paciente, medico, administrador y seguimiento interno.
 - Mock funcional de disponibilidad, visitas, bloqueos, KPIs y actividad reciente.
-- API Nest con endpoints base para autenticacion, disponibilidad, visitas, bloqueos y seguimiento.
+- API Nest con endpoints para autenticacion, disponibilidad, visitas, bloqueos, seguimiento y confirmacion/rechazo por token publico.
 - Endpoints base para usuarios, empresas y gestion outbound separable del MVP.
 - Modelo Prisma documentado para PostgreSQL y control de doble reserva.
 - Guia de despliegue para Cloud Run y Artifact Registry.

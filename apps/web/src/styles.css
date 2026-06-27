@@ -586,6 +586,21 @@ tbody tr:hover { background: rgba(31, 182, 200, 0.08); }
   gap: 18px;
   align-items: start;
 }
+.tracking-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.tracking-filters label { display: grid; gap: 6px; color: var(--muted); font-weight: 800; font-size: 0.82rem; }
+.tracking-filters input, .tracking-filters select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px;
+  background: #fffdf8;
+  color: var(--ink);
+}
 .doctor-note {
   display: grid;
   gap: 10px;
@@ -606,6 +621,6 @@ tbody tr:hover { background: rgba(31, 182, 200, 0.08); }
 
 @media (max-width: 760px) {
   .login-panel, .patient-grid, .assurance-list.horizontal, .feature-grid { grid-template-columns: 1fr; }
-  .outbound-grid { grid-template-columns: 1fr; }
+  .outbound-grid, .tracking-filters { grid-template-columns: 1fr; }
   .login-form { grid-column: auto; }
 }

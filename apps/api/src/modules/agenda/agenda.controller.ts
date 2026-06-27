@@ -182,6 +182,11 @@ export class AgendaController {
     return this.agenda.listOutboundCalls();
   }
 
+  @Get('outbound/notificaciones')
+  listOutboundNotifications() {
+    return this.agenda.listOutboundNotifications();
+  }
+
   @Post('outbound')
   createOutboundCall(@Body() dto: OutboundDto) {
     return this.agenda.createOutboundCall(dto);
@@ -189,16 +194,16 @@ export class AgendaController {
 
   @Get('publico/visitas/:token')
   publicVisit(@Param('token') token: string) {
-    return { token, estado: 'PENDIENTE_CONFIRMACION' };
+    return this.agenda.getPublicVisit(token);
   }
 
   @Post('publico/visitas/:token/confirmar')
   confirm(@Param('token') token: string) {
-    return { token, confirmado: true };
+    return this.agenda.confirmPublicVisit(token);
   }
 
   @Post('publico/visitas/:token/rechazar')
   reject(@Param('token') token: string) {
-    return { token, rechazado: true };
+    return this.agenda.rejectPublicVisit(token);
   }
 }

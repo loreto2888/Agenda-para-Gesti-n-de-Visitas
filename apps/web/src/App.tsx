@@ -88,6 +88,11 @@ export function App() {
   const [outboundClient, setOutboundClient] = useState('Cliente contactado');
   const [outboundPhone, setOutboundPhone] = useState('+56 9 0000 0000');
   const [outboundStatus, setOutboundStatus] = useState('Pendiente');
+  const [trackingQuery, setTrackingQuery] = useState('');
+  const [trackingDate, setTrackingDate] = useState('');
+  const [trackingStatus, setTrackingStatus] = useState('Todos');
+  const [trackingType, setTrackingType] = useState('Todos');
+  const [trackingDoctor, setTrackingDoctor] = useState('Todos');
 
   const visibleAppointments = useMemo(() => {
     if (currentUser?.rol === 'MEDICO') {
@@ -108,6 +113,19 @@ export function App() {
 
     return appointments.filter((appointment) => appointment.correo.toLowerCase() === currentUser.email.toLowerCase());
   }, [appointments, currentUser]);
+
+  const filteredTrackingAppointments = useMemo(() => {
+    const query = trackingQuery.trim().toLowerCase();
+    return visibleAppointments.filter((appointment) => {
+      const matchesQuery = !query || [appointment.op, appointment.paciente, appointment.correo, appointment.telefono, appointment.empresa, appointment.ejecutivo, appointment.resultado]
+        .some((value) => value.toLowerCase().includes(query));
+      const matchesDate = !trackingDate || appointment.fecha === trackingDate;
+      const matchesStatus = trackingStatus === 'Todos' || appointment.estado === trackingStatus;
+      const matchesType = trackingType === 'Todos' || appointment.gestion === trackingType;
+      const matchesDoctor = trackingDoctor === 'Todos' || appointment.medicoId === trackingDoctor;
+      return matchesQuery && matchesDate && matchesStatus && matchesType && matchesDoctor;
+    });
+  }, [trackingDate, trackingDoctor, trackingQuery, trackingStatus, trackingType, visibleAppointments]);
 
   const selectedAppointment = appointments.find((appointment) => appointment.id === selectedAppointmentId) ?? appointments[0];
   const selectedDoctor = doctors.find((doctor) => doctor.id === selectedDoctorId) ?? doctors[0];
@@ -669,6 +687,15 @@ export function App() {
               <span className="eyebrow">Administrador Phoenix</span>
               <h3>Seguimiento consolidado</h3>
             </div>
+            <span className="pill success">{filteredTrackingAppointments.length} visibles</span>
+          </div>
+
+          <div className="tracking-filters" aria-label="Filtros de seguimiento">
+            <label>Buscar<input value={trackingQuery} onChange={(event) => setTrackingQuery(event.target.value)} placeholder="OP, cliente, empresa, ejecutivo o resultado" /></label>
+            <label>Fecha<select value={trackingDate} onChange={(event) => setTrackingDate(event.target.value)}><option value="">Todas</option>{workingDays.map((day) => <option key={day}>{day}</option>)}</select></label>
+            <label>Estado<select value={trackingStatus} onChange={(event) => setTrackingStatus(event.target.value)}><option>Todos</option><option>Agendada</option><option>Confirmada</option><option>Reagendada</option><option>Anulada</option><option>Realizada</option><option>No asistio</option></select></label>
+            <label>Tipo<select value={trackingType} onChange={(event) => setTrackingType(event.target.value)}><option>Todos</option><option>Dacion</option><option>Venta directa</option></select></label>
+            <label>Medico<select value={trackingDoctor} onChange={(event) => setTrackingDoctor(event.target.value)}><option>Todos</option>{doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.nombre}</option>)}</select></label>
           </div>
 
           <div className="responsive-table">
@@ -686,7 +713,7 @@ export function App() {
                 </tr>
               </thead>
               <tbody>
-                {visibleAppointments.map((appointment) => (
+                {filteredTrackingAppointments.map((appointment) => (
                   <tr key={appointment.id} onClick={() => setSelectedAppointmentId(appointment.id)}>
                     <td>{appointment.op}</td>
                     <td>{appointment.paciente}</td>
