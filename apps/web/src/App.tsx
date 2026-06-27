@@ -118,7 +118,7 @@ export function App() {
             <span className="eyebrow">Acceso seguro</span>
             <div className="temporary-logo">PX</div>
             <h1>Agenda Visitas Phoenix</h1>
-            <p>Ingresa como paciente, medico o administrador. La API queda preparada para JWT firmado, expiracion y roles.</p>
+            <p>Ingresa como paciente, medico o administrador para gestionar horas y revisar la agenda de visitas.</p>
           </div>
 
           <div className="demo-users">
@@ -222,6 +222,7 @@ export function App() {
                     return (
                       <button className={`slot ${appointment ? 'ocupado' : 'disponible'}`} type="button" key={`${day}-${hour}`} onClick={() => {
                         setForm((value) => ({ ...value, medicoId: selectedDoctorId, fecha: day, hora: hour }));
+                        if (!appointment) setMessage(`Horario seleccionado: ${day} a las ${hour}. Completa tus datos y presiona Tomar hora.`);
                         if (appointment) setSelectedAppointmentId(appointment.id);
                       }}>
                         <span>{hour}</span>

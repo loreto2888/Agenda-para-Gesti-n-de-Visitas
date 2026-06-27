@@ -15,6 +15,7 @@ Implementacion base profesional para el piloto Phoenix: agenda de visitas, contr
 - Local API: http://localhost:3000/api
 - Documentacion API local: http://localhost:3000/api/docs
 - Repositorio web: https://github.com/loreto2888/Agenda-para-Gesti-n-de-Visitas
+- Web publica: https://loreto2888.github.io/Agenda-para-Gesti-n-de-Visitas/
 
 ## Usuarios demo
 
