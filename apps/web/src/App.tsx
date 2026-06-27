@@ -9,6 +9,23 @@ type PendingAction = {
   run: () => void;
 };
 
+type BlockedSlot = {
+  id: string;
+  medicoId: string;
+  fecha: string;
+  hora: string;
+  motivo: string;
+};
+
+type OutboundCall = {
+  id: string;
+  cliente: string;
+  telefono: string;
+  estado: string;
+  resultado: string;
+  visitaId?: string;
+};
+
 const statusTone: Record<AppointmentStatus, string> = {
   Agendada: 'neutral',
   Confirmada: 'success',
@@ -54,10 +71,23 @@ export function App() {
     const storedAppointments = window.localStorage.getItem('phoenix-appointments');
     return storedAppointments ? JSON.parse(storedAppointments) as Appointment[] : initialAppointments;
   });
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>(() => {
+    const storedBlocks = window.localStorage.getItem('phoenix-blocked-slots');
+    return storedBlocks ? JSON.parse(storedBlocks) as BlockedSlot[] : [];
+  });
+  const [outboundCalls, setOutboundCalls] = useState<OutboundCall[]>(() => {
+    const storedOutbound = window.localStorage.getItem('phoenix-outbound');
+    return storedOutbound ? JSON.parse(storedOutbound) as OutboundCall[] : [];
+  });
   const [selectedDoctorId, setSelectedDoctorId] = useState(doctors[0].id);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(initialAppointments[0].id);
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState('');
+  const [blockReason, setBlockReason] = useState('Colacion');
+  const [resultDraft, setResultDraft] = useState('');
+  const [outboundClient, setOutboundClient] = useState('Cliente contactado');
+  const [outboundPhone, setOutboundPhone] = useState('+56 9 0000 0000');
+  const [outboundStatus, setOutboundStatus] = useState('Pendiente');
 
   const visibleAppointments = useMemo(() => {
     if (currentUser?.rol === 'MEDICO') {
@@ -85,7 +115,11 @@ export function App() {
   const selectedSlotKey = `${form.medicoId}-${form.fecha}-${form.hora}`;
 
   const activeAppointments = appointments.filter((appointment) => appointment.estado !== 'Anulada');
-  const bookedSlots = new Set(activeAppointments.map((appointment) => `${appointment.medicoId}-${appointment.fecha}-${appointment.hora}`));
+  const blockedSlotKeys = new Set(blockedSlots.map((slot) => `${slot.medicoId}-${slot.fecha}-${slot.hora}`));
+  const bookedSlots = new Set([
+    ...activeAppointments.map((appointment) => `${appointment.medicoId}-${appointment.fecha}-${appointment.hora}`),
+    ...blockedSlotKeys,
+  ]);
   const authUsers = [...demoUsers, ...registeredUsers];
 
   function handleLogin() {
@@ -168,6 +202,16 @@ export function App() {
     window.localStorage.setItem('phoenix-appointments', JSON.stringify(nextAppointments));
   }
 
+  function persistBlockedSlots(nextBlocks: BlockedSlot[]) {
+    setBlockedSlots(nextBlocks);
+    window.localStorage.setItem('phoenix-blocked-slots', JSON.stringify(nextBlocks));
+  }
+
+  function persistOutbound(nextOutbound: OutboundCall[]) {
+    setOutboundCalls(nextOutbound);
+    window.localStorage.setItem('phoenix-outbound', JSON.stringify(nextOutbound));
+  }
+
   function bookAppointment() {
     if (!currentUser) return;
     const slotKey = `${form.medicoId}-${form.fecha}-${form.hora}`;
@@ -213,6 +257,60 @@ export function App() {
     setMessage('Estado de asistencia actualizado.');
   }
 
+  function saveResult(id: string) {
+    const result = resultDraft.trim();
+    if (!result) {
+      setMessage('Escribe un resultado antes de guardar.');
+      return;
+    }
+
+    persistAppointments(appointments.map((appointment) => appointment.id === id ? { ...appointment, resultado: result } : appointment));
+    setResultDraft('');
+    setMessage('Resultado registrado correctamente.');
+  }
+
+  function updateClientResponse(id: string, response: 'Confirmada' | 'Reagendada') {
+    const result = response === 'Confirmada' ? 'Cliente confirma asistencia mediante enlace' : 'Cliente rechaza y solicita reagendamiento';
+    persistAppointments(appointments.map((appointment) => appointment.id === id ? { ...appointment, estado: response, resultado: result } : appointment));
+    setMessage(result);
+  }
+
+  function blockSelectedSlot() {
+    const slotKey = `${form.medicoId}-${form.fecha}-${form.hora}`;
+    const alreadyUsed = activeAppointments.some((appointment) => `${appointment.medicoId}-${appointment.fecha}-${appointment.hora}` === slotKey);
+    if (alreadyUsed) {
+      setMessage('No se puede bloquear un horario que ya tiene visita registrada.');
+      return;
+    }
+
+    if (blockedSlotKeys.has(slotKey)) {
+      setMessage('Ese horario ya esta bloqueado.');
+      return;
+    }
+
+    persistBlockedSlots([...blockedSlots, { id: `blk_${Date.now()}`, medicoId: form.medicoId, fecha: form.fecha, hora: form.hora, motivo: blockReason }]);
+    setMessage(`Horario bloqueado por motivo: ${blockReason}.`);
+  }
+
+  function unblockSelectedSlot() {
+    const nextBlocks = blockedSlots.filter((slot) => `${slot.medicoId}-${slot.fecha}-${slot.hora}` !== `${form.medicoId}-${form.fecha}-${form.hora}`);
+    persistBlockedSlots(nextBlocks);
+    setMessage('Horario desbloqueado y disponible nuevamente.');
+  }
+
+  function createOutboundCall() {
+    const call: OutboundCall = {
+      id: `out_${Date.now()}`,
+      cliente: outboundClient,
+      telefono: outboundPhone,
+      estado: outboundStatus,
+      resultado: outboundStatus === 'Agendado' ? 'Contacto convertido en visita' : 'Gestion outbound registrada',
+      visitaId: selectedAppointment?.id,
+    };
+    persistOutbound([call, ...outboundCalls]);
+    setMessage('Gestion outbound registrada para seguimiento del Administrador.');
+  }
+
   function askConfirmation(action: PendingAction) {
     setPendingAction(action);
   }
@@ -228,8 +326,13 @@ export function App() {
     setMessage('Agenda actualizada para revisar las horas del medico seleccionado.');
   }
 
-  function reviewSlot(day: string, hour: string, appointment?: Appointment) {
+  function reviewSlot(day: string, hour: string, appointment?: Appointment, block?: BlockedSlot) {
     setForm((value) => ({ ...value, medicoId: selectedDoctorId, fecha: day, hora: hour }));
+    if (block) {
+      setMessage(`Horario bloqueado: ${block.motivo}. Puede desbloquearse desde Acciones.`);
+      return;
+    }
+
     if (appointment) {
       setSelectedAppointmentId(appointment.id);
       setMessage(`Hora ocupada: ${appointment.paciente} el ${day} a las ${hour}. Revisa la ficha y acciones disponibles.`);
@@ -441,11 +544,12 @@ export function App() {
                   <strong>{day}</strong>
                   {workingHours.map((hour) => {
                     const appointment = appointments.find((item) => item.medicoId === selectedDoctorId && item.fecha === day && item.hora === hour && item.estado !== 'Anulada');
+                    const block = blockedSlots.find((item) => item.medicoId === selectedDoctorId && item.fecha === day && item.hora === hour);
                     const isSelected = selectedSlotKey === `${selectedDoctorId}-${day}-${hour}`;
                     return (
-                      <button className={`slot ${appointment ? 'ocupado' : 'disponible'} ${isSelected ? 'selected' : ''}`} type="button" key={`${day}-${hour}`} onClick={() => reviewSlot(day, hour, appointment)}>
+                      <button className={`slot ${block ? 'bloqueado' : appointment ? 'ocupado' : 'disponible'} ${isSelected ? 'selected' : ''}`} type="button" key={`${day}-${hour}`} onClick={() => reviewSlot(day, hour, appointment, block)}>
                         <span>{hour}</span>
-                        <small>{appointment ? `Ver ${appointment.paciente}` : 'Libre'}</small>
+                        <small>{block ? block.motivo : appointment ? `Ver ${appointment.paciente}` : 'Libre'}</small>
                       </button>
                     );
                   })}
@@ -512,14 +616,51 @@ export function App() {
               <button type="button" onClick={() => selectedAppointment && askConfirmation({ title: 'Marcar realizada', detail: `Se marcara como realizada la atencion de ${selectedAppointment.paciente}.`, confirmLabel: 'Si, marcar realizada', run: () => markAttendance(selectedAppointment.id, 'Realizada') })}><CheckCircle2 size={17} />Marcar realizada</button>
               <button type="button" onClick={() => selectedAppointment && askConfirmation({ title: 'Marcar no asistencia', detail: `Se marcara no asistencia para ${selectedAppointment.paciente}.`, confirmLabel: 'Si, marcar no asistencia', run: () => markAttendance(selectedAppointment.id, 'No asistio') })}><UserRoundCheck size={17} />Marcar no asistencia</button>
             </div>
+            <div className="operator-tools">
+              <label>Motivo de bloqueo<select value={blockReason} onChange={(event) => setBlockReason(event.target.value)}><option>Colacion</option><option>No disponibilidad de mecanico</option><option>No disponibilidad de inspector</option><option>No disponibilidad de grua</option><option>Otro motivo operacional</option></select></label>
+              <div className="row-actions">
+                <button className="inline-button" type="button" onClick={blockSelectedSlot}>Bloquear horario seleccionado</button>
+                <button className="inline-button" type="button" onClick={unblockSelectedSlot}>Desbloquear horario</button>
+              </div>
+              <label>Resultado libre<textarea value={resultDraft} onChange={(event) => setResultDraft(event.target.value)} placeholder="Ej: Gestion exitosa, pendiente documentacion, requiere nueva visita..." /></label>
+              <button className="inline-button" type="button" onClick={() => selectedAppointment && saveResult(selectedAppointment.id)}>Guardar resultado</button>
+              <div className="row-actions">
+                <button className="inline-button" type="button" onClick={() => selectedAppointment && updateClientResponse(selectedAppointment.id, 'Confirmada')}>Simular confirmar cliente</button>
+                <button className="inline-button danger" type="button" onClick={() => selectedAppointment && updateClientResponse(selectedAppointment.id, 'Reagendada')}>Simular rechazo cliente</button>
+              </div>
+            </div>
             <div className="notification-preview">
               <Bell size={20} />
               <div>
-                <strong>Seguridad de login</strong>
-                <p>Backend preparado con hash de clave, token firmado y expiracion de sesion.</p>
+                <strong>Notificacion simulada</strong>
+                <p>La demo registra la accion y deja preparado el flujo para SMTP y enlaces de confirmacion/rechazo.</p>
               </div>
             </div>
           </article>
+        </section>
+
+        <section className="panel table-panel" id="outbound">
+          <div className="panel-heading">
+            <div>
+              <span className="eyebrow">RF-13</span>
+              <h3>Gestion outbound del Administrador</h3>
+            </div>
+            <span className="pill success">{outboundCalls.length} gestiones</span>
+          </div>
+          <div className="outbound-grid">
+            <form className="visit-form">
+              <label>Cliente contactado<input value={outboundClient} onChange={(event) => setOutboundClient(event.target.value)} /></label>
+              <label>Telefono<input value={outboundPhone} onChange={(event) => setOutboundPhone(event.target.value)} /></label>
+              <label>Estado llamada<select value={outboundStatus} onChange={(event) => setOutboundStatus(event.target.value)}><option>Pendiente</option><option>Contactado</option><option>No contesta</option><option>Agendado</option><option>Rechazado</option></select></label>
+              <button type="button" onClick={createOutboundCall}>Registrar outbound</button>
+            </form>
+            <div className="responsive-table">
+              <table>
+                <thead><tr><th>Cliente</th><th>Telefono</th><th>Estado</th><th>Resultado</th></tr></thead>
+                <tbody>{outboundCalls.map((call) => <tr key={call.id}><td>{call.cliente}</td><td>{call.telefono}</td><td>{call.estado}</td><td>{call.resultado}</td></tr>)}</tbody>
+              </table>
+            </div>
+          </div>
         </section>
 
         <section className="panel table-panel" id="seguimiento">

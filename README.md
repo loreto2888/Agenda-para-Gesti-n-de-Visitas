@@ -37,6 +37,10 @@ Tambien se puede crear una cuenta desde la pantalla inicial con correo y clave, 
 - Vista medico para revisar pacientes, anular/liberar horarios y marcar asistencia/no asistencia.
 - Vista administrador con seguimiento consolidado.
 - Confirmacion Si/No antes de acciones criticas.
+- Bloqueo/desbloqueo de horarios con motivo operacional.
+- Registro de resultado libre.
+- Simulacion de confirmacion o rechazo del cliente.
+- Gestion outbound basica del administrador.
 
 El detalle RF-01 a RF-13 esta documentado en `docs/alcance-funcional.md` y la matriz formal contra los 21 criterios de aceptacion esta en `docs/matriz-rf-criterios-aceptacion.md`.
 
