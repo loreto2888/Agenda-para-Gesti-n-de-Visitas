@@ -524,6 +524,23 @@ tbody tr:hover { background: rgba(31, 182, 200, 0.08); }
 .empty-state strong { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
 .empty-state p { margin: 0; }
 
+.feature-summary { display: grid; gap: 16px; }
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.feature-grid div {
+  display: grid;
+  gap: 6px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+.feature-grid strong { font-family: 'Space Grotesk', sans-serif; }
+.feature-grid span { color: var(--muted); line-height: 1.45; }
+
 .patient-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -560,9 +577,10 @@ tbody tr:hover { background: rgba(31, 182, 200, 0.08); }
 @media (max-width: 1120px) {
   .login-panel { grid-template-columns: 1fr 1fr; }
   .assurance-list.horizontal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
-  .login-panel, .patient-grid, .assurance-list.horizontal { grid-template-columns: 1fr; }
+  .login-panel, .patient-grid, .assurance-list.horizontal, .feature-grid { grid-template-columns: 1fr; }
   .login-form { grid-column: auto; }
 }

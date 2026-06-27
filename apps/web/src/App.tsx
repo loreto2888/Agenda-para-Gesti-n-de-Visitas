@@ -343,7 +343,7 @@ export function App() {
           <div className="hero-copy">
             <span className="status-dot"><Stethoscope size={16} />Operacion funcional</span>
             <h2>Login, agenda por medico, ficha de paciente, inscripcion, anulacion y cambio de hora.</h2>
-            <p>La pantalla opera con estado real en el navegador y el backend expone la base para seguridad JWT, roles y validacion de disponibilidad.</p>
+            <p>Pacientes, medicos y administradores pueden registrarse con sus datos, ingresar con correo y clave, revisar agenda y operar sus horas segun perfil.</p>
           </div>
           <div className="hero-metrics" aria-label="Indicadores principales">
             {kpis.map((item) => (
@@ -354,6 +354,17 @@ export function App() {
                 <small>{item.trend}</small>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="panel feature-summary">
+          <span className="eyebrow">RF-01 a RF-13</span>
+          <h3>Flujos listos para prueba funcional</h3>
+          <div className="feature-grid">
+            <div><strong>Registro y login</strong><span>Cuenta con correo y clave para paciente, medico o administrador.</span></div>
+            <div><strong>Agenda</strong><span>Revision de horas libres, ocupadas y seleccionadas por medico.</span></div>
+            <div><strong>Mi pagina</strong><span>Paciente ve, agenda, cambia y anula sus horas.</span></div>
+            <div><strong>Gestion clinica</strong><span>Medico/admin revisa pacientes, libera horarios y registra asistencia.</span></div>
           </div>
         </section>
 

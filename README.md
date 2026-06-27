@@ -27,6 +27,19 @@ Todos usan la clave `Phoenix2026!`.
 
 Tambien se puede crear una cuenta desde la pantalla inicial con correo y clave, eligiendo perfil Paciente, Medico o Administrador. Las cuentas y horas creadas quedan guardadas localmente en el navegador para la demo.
 
+## Flujo disponible en la demo
+
+- Registro con datos propios para paciente, medico o administrador.
+- Login con correo y clave.
+- Agenda por medico para revisar horas libres y ocupadas.
+- Toma de hora por paciente.
+- Mi pagina para ver, cambiar horario y anular horas.
+- Vista medico para revisar pacientes, anular/liberar horarios y marcar asistencia/no asistencia.
+- Vista administrador con seguimiento consolidado.
+- Confirmacion Si/No antes de acciones criticas.
+
+El detalle RF-01 a RF-13 esta documentado en `docs/alcance-funcional.md`.
+
 ## Estructura
 
 ```text
