@@ -25,11 +25,17 @@ const initialForm = {
 };
 
 export function App() {
-  const [currentUser, setCurrentUser] = useState<UserAccount | null>(null);
-  const [loginEmail, setLoginEmail] = useState(demoUsers[0].email);
-  const [loginPassword, setLoginPassword] = useState(demoUsers[0].password);
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
+    const storedUser = window.localStorage.getItem('phoenix-user');
+    return storedUser ? JSON.parse(storedUser) as UserAccount : null;
+  });
+  const [loginEmail, setLoginEmail] = useState('paciente@correo.cl');
+  const [loginPassword, setLoginPassword] = useState('Phoenix2026!');
   const [loginError, setLoginError] = useState('');
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>(() => {
+    const storedAppointments = window.localStorage.getItem('phoenix-appointments');
+    return storedAppointments ? JSON.parse(storedAppointments) as Appointment[] : initialAppointments;
+  });
   const [selectedDoctorId, setSelectedDoctorId] = useState(doctors[0].id);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(initialAppointments[0].id);
   const [form, setForm] = useState(initialForm);
@@ -44,6 +50,17 @@ export function App() {
     return appointments.filter((appointment) => appointment.medicoId === selectedDoctorId || currentUser?.rol === 'ADMINISTRADOR');
   }, [appointments, currentUser, selectedDoctorId]);
 
+  const myAppointments = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.rol === 'ADMINISTRADOR') return appointments;
+    if (currentUser.rol === 'MEDICO') {
+      const doctor = doctors.find((item) => item.nombre === currentUser.nombre);
+      return appointments.filter((appointment) => appointment.medicoId === doctor?.id);
+    }
+
+    return appointments.filter((appointment) => appointment.correo.toLowerCase() === currentUser.email.toLowerCase());
+  }, [appointments, currentUser]);
+
   const selectedAppointment = appointments.find((appointment) => appointment.id === selectedAppointmentId) ?? appointments[0];
   const selectedDoctor = doctors.find((doctor) => doctor.id === selectedDoctorId) ?? doctors[0];
   const canBook = currentUser?.rol !== 'MEDICO';
@@ -53,23 +70,47 @@ export function App() {
   const bookedSlots = new Set(activeAppointments.map((appointment) => `${appointment.medicoId}-${appointment.fecha}-${appointment.hora}`));
 
   function handleLogin() {
-    const user = demoUsers.find((item) => item.email === loginEmail && item.password === loginPassword);
-    if (!user) {
-      setLoginError('Credenciales invalidas. Usa uno de los accesos demo o una cuenta cargada en backend.');
+    const normalizedEmail = loginEmail.trim().toLowerCase();
+    const user = demoUsers.find((item) => item.email === normalizedEmail && item.password === loginPassword);
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+
+    if (!user && (!isValidEmail || loginPassword.length < 6)) {
+      setLoginError('Ingresa un correo valido y una clave de al menos 6 caracteres.');
       return;
     }
 
-    setCurrentUser(user);
+    const sessionUser: UserAccount = user ?? {
+      id: `usr_${normalizedEmail}`,
+      nombre: normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      password: loginPassword,
+      rol: 'PACIENTE',
+    };
+
+    setCurrentUser(sessionUser);
+    window.localStorage.setItem('phoenix-user', JSON.stringify(sessionUser));
+    setForm((value) => ({
+      ...value,
+      correo: sessionUser.email,
+      paciente: sessionUser.rol === 'PACIENTE' ? sessionUser.nombre : value.paciente,
+    }));
     setLoginError('');
-    setMessage(`Sesion iniciada como ${user.nombre}`);
+    setMessage(`Sesion iniciada como ${sessionUser.nombre}. Ya puedes tomar, revisar, cambiar o anular horas.`);
   }
 
   function handleLogout() {
     setCurrentUser(null);
+    window.localStorage.removeItem('phoenix-user');
     setMessage('Sesion cerrada correctamente.');
   }
 
+  function persistAppointments(nextAppointments: Appointment[]) {
+    setAppointments(nextAppointments);
+    window.localStorage.setItem('phoenix-appointments', JSON.stringify(nextAppointments));
+  }
+
   function bookAppointment() {
+    if (!currentUser) return;
     const slotKey = `${form.medicoId}-${form.fecha}-${form.hora}`;
     if (bookedSlots.has(slotKey)) {
       setMessage('Ese horario ya fue tomado. Selecciona otro slot disponible.');
@@ -78,19 +119,21 @@ export function App() {
 
     const appointment: Appointment = {
       ...form,
+      correo: currentUser.rol === 'PACIENTE' ? currentUser.email : form.correo,
+      paciente: currentUser.rol === 'PACIENTE' && form.paciente === 'Nombre paciente' ? currentUser.nombre : form.paciente,
       id: `apt_${Date.now()}`,
       ejecutivo: currentUser?.nombre ?? 'Usuario demo',
       estado: 'Agendada',
       resultado: 'Cita registrada y notificada',
     };
 
-    setAppointments((items) => [appointment, ...items]);
+    persistAppointments([appointment, ...appointments]);
     setSelectedAppointmentId(appointment.id);
-    setMessage('Hora inscrita correctamente. Se genera notificacion al cliente.');
+    setMessage('Hora tomada correctamente. La puedes ver en Mi pagina y cambiar o anular cuando lo necesites.');
   }
 
   function cancelAppointment(id: string) {
-    setAppointments((items) => items.map((appointment) => appointment.id === id ? { ...appointment, estado: 'Anulada', resultado: 'Anulada por usuario autorizado' } : appointment));
+    persistAppointments(appointments.map((appointment) => appointment.id === id ? { ...appointment, estado: 'Anulada', resultado: 'Anulada por usuario autorizado' } : appointment));
     setMessage('Hora anulada. El slot vuelve a quedar disponible para nuevas reservas.');
   }
 
@@ -102,12 +145,12 @@ export function App() {
       return;
     }
 
-    setAppointments((items) => items.map((appointment) => appointment.id === id ? { ...appointment, medicoId: form.medicoId, fecha: form.fecha, hora: form.hora, estado: 'Reagendada', resultado: 'Cambio de hora informado al cliente' } : appointment));
+    persistAppointments(appointments.map((appointment) => appointment.id === id ? { ...appointment, medicoId: form.medicoId, fecha: form.fecha, hora: form.hora, estado: 'Reagendada', resultado: 'Cambio de hora informado al cliente' } : appointment));
     setMessage('Hora cambiada correctamente. Se registra auditoria y notificacion.');
   }
 
   function markAttendance(id: string, status: 'Realizada' | 'No asistio') {
-    setAppointments((items) => items.map((appointment) => appointment.id === id ? { ...appointment, estado: status, resultado: status === 'Realizada' ? 'Gestion realizada' : 'Cliente no asistio' } : appointment));
+    persistAppointments(appointments.map((appointment) => appointment.id === id ? { ...appointment, estado: status, resultado: status === 'Realizada' ? 'Gestion realizada' : 'Cliente no asistio' } : appointment));
     setMessage('Estado de asistencia actualizado.');
   }
 
@@ -150,7 +193,7 @@ export function App() {
           </div>
 
           <form className="login-form" onSubmit={(event) => { event.preventDefault(); handleLogin(); }}>
-            <label>Correo<input value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
+            <label>Correo<input type="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
             <label>Clave<input type="password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} /></label>
             {loginError && <p className="form-error">{loginError}</p>}
             <button type="submit"><KeyRound size={18} />Entrar</button>
@@ -172,6 +215,7 @@ export function App() {
         </div>
 
         <nav className="nav-list">
+          <a href="#mi-pagina"><UserRoundCheck size={18} />Mi pagina</a>
           <a className="active" href="#agenda"><CalendarClock size={18} />Agenda</a>
           <a href="#registro"><ClipboardList size={18} />Tomar hora</a>
           <a href="#paciente"><UserRound size={18} />Paciente</a>
@@ -217,6 +261,55 @@ export function App() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="panel table-panel" id="mi-pagina">
+          <div className="panel-heading">
+            <div>
+              <span className="eyebrow">Mi pagina</span>
+              <h3>{currentUser.rol === 'PACIENTE' ? 'Mis horas tomadas' : 'Horas bajo mi gestion'}</h3>
+            </div>
+            <span className="pill success"><CheckCircle2 size={16} />{myAppointments.length} registros</span>
+          </div>
+
+          {myAppointments.length === 0 ? (
+            <div className="empty-state">
+              <CalendarClock size={28} />
+              <strong>No tienes horas tomadas</strong>
+              <p>Selecciona un horario libre en la agenda, completa tus datos y presiona Tomar hora.</p>
+            </div>
+          ) : (
+            <div className="responsive-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Paciente</th>
+                    <th>Medico</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myAppointments.map((appointment) => (
+                    <tr key={appointment.id} onClick={() => setSelectedAppointmentId(appointment.id)}>
+                      <td>{appointment.paciente}</td>
+                      <td>{doctors.find((doctor) => doctor.id === appointment.medicoId)?.nombre}</td>
+                      <td>{appointment.fecha} {appointment.hora}</td>
+                      <td><span className={`status ${statusTone[appointment.estado]}`}>{appointment.estado}</span></td>
+                      <td>
+                        <div className="row-actions">
+                          <button className="inline-button" type="button" onClick={(event) => { event.stopPropagation(); setSelectedAppointmentId(appointment.id); }}>Ver</button>
+                          <button className="inline-button" type="button" onClick={(event) => { event.stopPropagation(); rescheduleAppointment(appointment.id); }}>Cambiar</button>
+                          <button className="inline-button danger" type="button" onClick={(event) => { event.stopPropagation(); cancelAppointment(appointment.id); }}>Anular</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         <section className="workspace-grid" id="agenda">
