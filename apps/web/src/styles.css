@@ -426,6 +426,42 @@ th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-
   font-weight: 800;
 }
 
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(16, 36, 39, 0.46);
+  backdrop-filter: blur(8px);
+}
+
+.confirm-dialog {
+  width: min(460px, 100%);
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 28px 80px rgba(16, 36, 39, 0.28);
+}
+
+.confirm-dialog p { margin: 12px 0 0; }
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+.confirm-actions button {
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.secondary-confirm { border: 1px solid var(--line); background: white; color: var(--ink); }
+.primary-confirm { border: 0; background: var(--teal); color: white; }
+
 .calendar-board .slot { min-height: 66px; }
 .slot.selected {
   outline: 3px solid rgba(242, 165, 65, 0.38);

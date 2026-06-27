@@ -2,6 +2,13 @@ import { useMemo, useState } from 'react';
 import { ArrowRight, Ban, Bell, CalendarClock, CheckCircle2, ClipboardList, Cloud, Container, Database, GitBranch, KeyRound, LockKeyhole, Mail, Network, RefreshCcw, Search, Server, Stethoscope, UserRound, UserRoundCheck } from 'lucide-react';
 import { acceptanceItems, demoUsers, doctors, initialAppointments, kpis, workingDays, workingHours, type Appointment, type AppointmentStatus, type UserAccount } from './data';
 
+type PendingAction = {
+  title: string;
+  detail: string;
+  confirmLabel: string;
+  run: () => void;
+};
+
 const statusTone: Record<AppointmentStatus, string> = {
   Agendada: 'neutral',
   Confirmada: 'success',
@@ -42,6 +49,7 @@ export function App() {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerRole, setRegisterRole] = useState<UserAccount['rol']>('PACIENTE');
   const [registerDoctorId, setRegisterDoctorId] = useState(doctors[0].id);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>(() => {
     const storedAppointments = window.localStorage.getItem('phoenix-appointments');
     return storedAppointments ? JSON.parse(storedAppointments) as Appointment[] : initialAppointments;
@@ -205,6 +213,15 @@ export function App() {
     setMessage('Estado de asistencia actualizado.');
   }
 
+  function askConfirmation(action: PendingAction) {
+    setPendingAction(action);
+  }
+
+  function confirmPendingAction() {
+    pendingAction?.run();
+    setPendingAction(null);
+  }
+
   function selectDoctor(doctorId: string) {
     setSelectedDoctorId(doctorId);
     setForm((value) => ({ ...value, medicoId: doctorId }));
@@ -296,6 +313,20 @@ export function App() {
       </aside>
 
       <section className="content">
+        {pendingAction && (
+          <div className="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <div className="confirm-dialog">
+              <span className="eyebrow">Confirmacion requerida</span>
+              <h3 id="confirm-title">{pendingAction.title}</h3>
+              <p>{pendingAction.detail}</p>
+              <div className="confirm-actions">
+                <button className="secondary-confirm" type="button" onClick={() => setPendingAction(null)}>No, volver</button>
+                <button className="primary-confirm" type="button" onClick={confirmPendingAction}>{pendingAction.confirmLabel}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <header className="topbar">
           <div>
             <span className="eyebrow">Agenda Visitas Phoenix</span>
@@ -363,8 +394,8 @@ export function App() {
                       <td>
                         <div className="row-actions">
                           <button className="inline-button" type="button" onClick={(event) => { event.stopPropagation(); setSelectedAppointmentId(appointment.id); }}>Ver</button>
-                          <button className="inline-button" type="button" onClick={(event) => { event.stopPropagation(); rescheduleAppointment(appointment.id); }}>Cambiar</button>
-                          <button className="inline-button danger" type="button" onClick={(event) => { event.stopPropagation(); cancelAppointment(appointment.id); }}>Anular</button>
+                          <button className="inline-button" type="button" onClick={(event) => { event.stopPropagation(); askConfirmation({ title: 'Cambiar esta hora', detail: `Se cambiara la hora de ${appointment.paciente} a ${form.fecha} ${form.hora}.`, confirmLabel: 'Si, cambiar', run: () => rescheduleAppointment(appointment.id) }); }}>Cambiar</button>
+                          <button className="inline-button danger" type="button" onClick={(event) => { event.stopPropagation(); askConfirmation({ title: 'Anular esta hora', detail: `Se anulara la hora de ${appointment.paciente} y el horario quedara disponible.`, confirmLabel: 'Si, anular', run: () => cancelAppointment(appointment.id) }); }}>Anular</button>
                         </div>
                       </td>
                     </tr>
@@ -465,10 +496,10 @@ export function App() {
             <span className="eyebrow">Acciones</span>
             <h3>{currentUser.rol === 'MEDICO' ? 'Ver, anular y liberar horarios' : 'Cambiar, anular y registrar asistencia'}</h3>
             <div className="action-stack">
-              <button type="button" onClick={() => selectedAppointment && rescheduleAppointment(selectedAppointment.id)}><RefreshCcw size={17} />Cambiar a fecha/hora del formulario</button>
-              <button type="button" onClick={() => selectedAppointment && cancelAppointment(selectedAppointment.id)}><Ban size={17} />Anular hora</button>
-              <button type="button" onClick={() => selectedAppointment && markAttendance(selectedAppointment.id, 'Realizada')}><CheckCircle2 size={17} />Marcar realizada</button>
-              <button type="button" onClick={() => selectedAppointment && markAttendance(selectedAppointment.id, 'No asistio')}><UserRoundCheck size={17} />Marcar no asistencia</button>
+              <button type="button" onClick={() => selectedAppointment && askConfirmation({ title: 'Cambiar horario', detail: `Se cambiara la hora de ${selectedAppointment.paciente} a ${form.fecha} ${form.hora}.`, confirmLabel: 'Si, cambiar', run: () => rescheduleAppointment(selectedAppointment.id) })}><RefreshCcw size={17} />Cambiar a fecha/hora del formulario</button>
+              <button type="button" onClick={() => selectedAppointment && askConfirmation({ title: 'Anular hora', detail: `Se anulara la hora de ${selectedAppointment.paciente}. El horario quedara libre.`, confirmLabel: 'Si, anular', run: () => cancelAppointment(selectedAppointment.id) })}><Ban size={17} />Anular hora</button>
+              <button type="button" onClick={() => selectedAppointment && askConfirmation({ title: 'Marcar realizada', detail: `Se marcara como realizada la atencion de ${selectedAppointment.paciente}.`, confirmLabel: 'Si, marcar realizada', run: () => markAttendance(selectedAppointment.id, 'Realizada') })}><CheckCircle2 size={17} />Marcar realizada</button>
+              <button type="button" onClick={() => selectedAppointment && askConfirmation({ title: 'Marcar no asistencia', detail: `Se marcara no asistencia para ${selectedAppointment.paciente}.`, confirmLabel: 'Si, marcar no asistencia', run: () => markAttendance(selectedAppointment.id, 'No asistio') })}><UserRoundCheck size={17} />Marcar no asistencia</button>
             </div>
             <div className="notification-preview">
               <Bell size={20} />
