@@ -407,6 +407,40 @@ th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-
 }
 
 .calendar-board .slot { min-height: 66px; }
+.slot.selected {
+  outline: 3px solid rgba(242, 165, 65, 0.38);
+  border-color: var(--amber);
+  box-shadow: 0 10px 24px rgba(242, 165, 65, 0.18);
+}
+.slot-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+.slot-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.slot-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.legend-free { background: var(--green); }
+.legend-busy { background: var(--red); }
+.legend-selected { background: var(--amber); }
+.selected-slot-card {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(242, 165, 65, 0.32);
+  background: rgba(242, 165, 65, 0.11);
+}
+.selected-slot-card span { color: var(--muted); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; }
+.selected-slot-card strong { display: block; margin-top: 4px; }
+.selected-slot-card p { margin: 4px 0 0; }
 tbody tr { cursor: pointer; }
 tbody tr:hover { background: rgba(31, 182, 200, 0.08); }
 .inline-button {

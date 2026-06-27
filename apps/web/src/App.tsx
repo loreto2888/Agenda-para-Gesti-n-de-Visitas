@@ -47,6 +47,7 @@ export function App() {
   const selectedAppointment = appointments.find((appointment) => appointment.id === selectedAppointmentId) ?? appointments[0];
   const selectedDoctor = doctors.find((doctor) => doctor.id === selectedDoctorId) ?? doctors[0];
   const canBook = currentUser?.rol !== 'MEDICO';
+  const selectedSlotKey = `${form.medicoId}-${form.fecha}-${form.hora}`;
 
   const activeAppointments = appointments.filter((appointment) => appointment.estado !== 'Anulada');
   const bookedSlots = new Set(activeAppointments.map((appointment) => `${appointment.medicoId}-${appointment.fecha}-${appointment.hora}`));
@@ -108,6 +109,23 @@ export function App() {
   function markAttendance(id: string, status: 'Realizada' | 'No asistio') {
     setAppointments((items) => items.map((appointment) => appointment.id === id ? { ...appointment, estado: status, resultado: status === 'Realizada' ? 'Gestion realizada' : 'Cliente no asistio' } : appointment));
     setMessage('Estado de asistencia actualizado.');
+  }
+
+  function selectDoctor(doctorId: string) {
+    setSelectedDoctorId(doctorId);
+    setForm((value) => ({ ...value, medicoId: doctorId }));
+    setMessage('Agenda actualizada para revisar las horas del medico seleccionado.');
+  }
+
+  function reviewSlot(day: string, hour: string, appointment?: Appointment) {
+    setForm((value) => ({ ...value, medicoId: selectedDoctorId, fecha: day, hora: hour }));
+    if (appointment) {
+      setSelectedAppointmentId(appointment.id);
+      setMessage(`Hora ocupada: ${appointment.paciente} el ${day} a las ${hour}. Revisa la ficha y acciones disponibles.`);
+      return;
+    }
+
+    setMessage(`Horario libre seleccionado: ${day} a las ${hour}. Completa tus datos y presiona Tomar hora.`);
   }
 
   if (!currentUser) {
@@ -208,9 +226,15 @@ export function App() {
                 <span className="eyebrow">Agenda del medico</span>
                 <h3>{selectedDoctor.nombre}</h3>
               </div>
-              <select className="compact-select" value={selectedDoctorId} onChange={(event) => setSelectedDoctorId(event.target.value)} disabled={currentUser.rol === 'MEDICO'}>
+              <select className="compact-select" value={selectedDoctorId} onChange={(event) => selectDoctor(event.target.value)} disabled={currentUser.rol === 'MEDICO'}>
                 {doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.nombre}</option>)}
               </select>
+            </div>
+
+            <div className="slot-legend">
+              <span><i className="legend-free" />Libre para tomar hora</span>
+              <span><i className="legend-busy" />Ocupada, tocar para revisar ficha</span>
+              <span><i className="legend-selected" />Seleccionada</span>
             </div>
 
             <div className="agenda-grid calendar-board">
@@ -219,14 +243,11 @@ export function App() {
                   <strong>{day}</strong>
                   {workingHours.map((hour) => {
                     const appointment = appointments.find((item) => item.medicoId === selectedDoctorId && item.fecha === day && item.hora === hour && item.estado !== 'Anulada');
+                    const isSelected = selectedSlotKey === `${selectedDoctorId}-${day}-${hour}`;
                     return (
-                      <button className={`slot ${appointment ? 'ocupado' : 'disponible'}`} type="button" key={`${day}-${hour}`} onClick={() => {
-                        setForm((value) => ({ ...value, medicoId: selectedDoctorId, fecha: day, hora: hour }));
-                        if (!appointment) setMessage(`Horario seleccionado: ${day} a las ${hour}. Completa tus datos y presiona Tomar hora.`);
-                        if (appointment) setSelectedAppointmentId(appointment.id);
-                      }}>
+                      <button className={`slot ${appointment ? 'ocupado' : 'disponible'} ${isSelected ? 'selected' : ''}`} type="button" key={`${day}-${hour}`} onClick={() => reviewSlot(day, hour, appointment)}>
                         <span>{hour}</span>
-                        <small>{appointment ? appointment.paciente : 'Libre'}</small>
+                        <small>{appointment ? `Ver ${appointment.paciente}` : 'Libre'}</small>
                       </button>
                     );
                   })}
@@ -253,6 +274,11 @@ export function App() {
               <label>Tipo de gestion<select value={form.gestion} onChange={(event) => setForm({ ...form, gestion: event.target.value as Appointment['gestion'] })}><option>Dacion</option><option>Venta directa</option></select></label>
               <button type="button" onClick={bookAppointment}>Tomar hora y notificar <Mail size={17} /></button>
             </form> : <div className="doctor-note"><Stethoscope size={26} /><strong>Modo medico</strong><p>Tu agenda es solo para revisar pacientes, anular atenciones y liberar horarios disponibles. Los pacientes deben iniciar sesion para tomar o cambiar horas.</p></div>}
+            <div className="selected-slot-card">
+              <span>Hora seleccionada</span>
+              <strong>{doctors.find((doctor) => doctor.id === form.medicoId)?.nombre}</strong>
+              <p>{form.fecha} a las {form.hora}</p>
+            </div>
           </article>
         </section>
 
