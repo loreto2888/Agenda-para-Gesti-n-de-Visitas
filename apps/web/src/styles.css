@@ -305,3 +305,158 @@ th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-
   .arch-node { min-width: 0; width: 100%; }
   .arch-line { display: none; }
 }
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(135deg, rgba(12, 107, 114, 0.15), transparent 34%),
+    radial-gradient(circle at 82% 12%, rgba(242, 165, 65, 0.22), transparent 30%),
+    #edf4f2;
+}
+
+.login-panel {
+  width: min(980px, 100%);
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 22px;
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: 0 28px 80px rgba(20, 50, 52, 0.14);
+}
+
+.demo-users { display: grid; gap: 10px; }
+.demo-users button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  align-items: center;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  padding: 13px;
+  cursor: pointer;
+}
+.demo-users svg { color: var(--teal); grid-row: span 2; }
+.demo-users span { font-weight: 800; }
+.demo-users small { color: var(--muted); }
+.temporary-logo {
+  width: 78px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  border-radius: 8px;
+  color: white;
+  background: linear-gradient(145deg, #0c6b72, #1fb6c8 58%, #f2a541);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  box-shadow: 0 18px 34px rgba(12, 107, 114, 0.24);
+}
+
+.login-form { grid-column: 1 / -1; display: grid; gap: 12px; }
+.login-form label { display: grid; gap: 6px; color: var(--muted); font-weight: 800; }
+.login-form input, .compact-select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: white;
+}
+.login-form button, .action-stack button {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: white;
+  background: var(--teal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.form-error { margin: 0; color: var(--red); font-weight: 800; }
+
+.ghost-button {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+  background: transparent;
+  cursor: pointer;
+}
+
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(27, 143, 114, 0.25);
+  color: #106a55;
+  background: rgba(27, 143, 114, 0.12);
+  font-weight: 800;
+}
+
+.calendar-board .slot { min-height: 66px; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: rgba(31, 182, 200, 0.08); }
+.inline-button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  padding: 7px 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.patient-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.patient-grid div {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+.patient-grid span { color: var(--muted); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; }
+.patient-grid strong { word-break: break-word; }
+.patient-grid .wide { grid-column: 1 / -1; }
+
+.action-stack { display: grid; gap: 10px; }
+.action-stack button:nth-child(2) { background: var(--red); }
+.action-stack button:nth-child(4) { background: #6e7580; }
+.assurance-list.horizontal { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.doctor-note {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid rgba(12, 107, 114, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(31, 182, 200, 0.12), rgba(255, 253, 248, 0.9));
+}
+.doctor-note svg { color: var(--teal); }
+.doctor-note strong { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
+.doctor-note p { margin: 0; }
+
+@media (max-width: 1120px) {
+  .login-panel { grid-template-columns: 1fr 1fr; }
+  .assurance-list.horizontal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .login-panel, .patient-grid, .assurance-list.horizontal { grid-template-columns: 1fr; }
+  .login-form { grid-column: auto; }
+}

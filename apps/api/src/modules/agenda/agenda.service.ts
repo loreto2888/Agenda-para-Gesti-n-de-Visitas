@@ -47,7 +47,7 @@ const companies = [
 
 const users: Array<{ id: string; nombre: string; email: string; rol: string; empresaId?: string; activo: boolean }> = [
   { id: 'usr_001', nombre: 'Administrador Phoenix', email: 'admin@phoenix.cl', rol: 'ADMINISTRADOR', empresaId: 'emp_003', activo: true },
-  { id: 'usr_002', nombre: 'Ejecutivo Externo', email: 'ejecutivo@partner.cl', rol: 'EJECUTIVO_EXTERNO', empresaId: 'emp_001', activo: true },
+  { id: 'usr_002', nombre: 'Paciente Demo', email: 'paciente@phoenix.cl', rol: 'PACIENTE', empresaId: 'emp_003', activo: true },
 ];
 
 const outboundCalls: Array<{ id: string; cliente: string; telefono: string; estado: string; resultado?: string; visitaId?: string }> = [];

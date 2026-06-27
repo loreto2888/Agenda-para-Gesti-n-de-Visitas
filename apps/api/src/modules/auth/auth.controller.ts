@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
+import { AuthService } from './auth.service';
 
 class LoginDto {
   @IsEmail()
@@ -14,17 +15,11 @@ class LoginDto {
 @ApiTags('autenticacion')
 @Controller('autenticacion')
 export class AuthController {
+  constructor(private readonly auth: AuthService) {}
+
   @Post('login')
   login(@Body() dto: LoginDto) {
-    return {
-      accessToken: 'demo-token-firmado-en-produccion',
-      user: {
-        id: 'usr_admin',
-        email: dto.email,
-        nombre: 'Administrador Phoenix',
-        rol: 'ADMINISTRADOR',
-      },
-    };
+    return this.auth.login(dto.email, dto.password);
   }
 
   @Post('logout')
@@ -33,12 +28,7 @@ export class AuthController {
   }
 
   @Get('yo')
-  me() {
-    return {
-      id: 'usr_admin',
-      email: 'admin@phoenix.cl',
-      nombre: 'Administrador Phoenix',
-      rol: 'ADMINISTRADOR',
-    };
+  me(@Headers('authorization') authorization?: string) {
+    return this.auth.me(authorization);
   }
 }

@@ -68,7 +68,7 @@ class UserDto {
   @IsEmail()
   email: string;
 
-  @IsIn(['EJECUTIVO_EXTERNO', 'ADMINISTRADOR', 'VISOR_INTERNO'])
+  @IsIn(['PACIENTE', 'MEDICO', 'ADMINISTRADOR', 'VISOR_INTERNO'])
   rol: string;
 
   @IsString()

@@ -16,6 +16,14 @@ Implementacion base profesional para el piloto Phoenix: agenda de visitas, contr
 - Documentacion API local: http://localhost:3000/api/docs
 - Repositorio web: https://github.com/loreto2888/Agenda-para-Gesti-n-de-Visitas
 
+## Usuarios demo
+
+Todos usan la clave `Phoenix2026!`.
+
+- Administrador: `admin@phoenix.cl`
+- Medico: `medico@phoenix.cl`
+- Paciente: `paciente@phoenix.cl`
+
 ## Estructura
 
 ```text
@@ -48,7 +56,7 @@ Copiar `.env.example` a `.env` y completar credenciales reales para base de dato
 
 ## Alcance implementado
 
-- Experiencia web profesional para ejecutivo, administrador y seguimiento interno.
+- Experiencia web profesional para paciente, medico, administrador y seguimiento interno.
 - Mock funcional de disponibilidad, visitas, bloqueos, KPIs y actividad reciente.
 - API Nest con endpoints base para autenticacion, disponibilidad, visitas, bloqueos y seguimiento.
 - Endpoints base para usuarios, empresas y gestion outbound separable del MVP.
